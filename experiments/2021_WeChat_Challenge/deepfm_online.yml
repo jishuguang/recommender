@@ -1,0 +1,62 @@
+save:
+  dir: 'D:\data\train_log_deepfm_online'
+
+model:
+  name: deepfm
+  value_dim: 15
+  cat_dim: [260000, 120000, 3, 20000, 26000, 18000]
+  cat_embed_dim: 10
+  action_dim: 4
+  mlp_dim: [100, 50, 10]
+  content_embed:
+    dim: 512
+    item_path: 'D:\data\origin\feed_embeddings.csv'
+    item_id_dim: 120000
+    user_path: 'D:\data\dataset\user_embeddings.csv'
+    user_id_dim: 260000
+  dropout: 0.1
+
+pretrain:
+#  resume:
+  load: D:\data\train_log_deepfm_offline\20210621015357\model\model_best.pth
+
+data:
+  name: ctr
+  train: 'D:\data\dataset\offline_train.csv'
+  negative_sample: 0.1
+  val: 'D:\data\dataset\offline_test.csv'
+  test: 'D:\data\dataset\online_test_a.csv'
+  user: 'userid'
+  item: 'feedid'
+  value_name: ['videoplayseconds', 'read_comment_sum', 'like_sum', 'click_avatar_sum', 'forward_sum', 'comment_sum',
+               'follow_sum', 'favorite_sum', 'read_comment_sum_user', 'like_sum_user', 'click_avatar_sum_user',
+               'forward_sum_user', 'comment_sum_user', 'follow_sum_user', 'favorite_sum_user']
+  cat_name: ["userid", "feedid", "device", "authorid", "bgm_song_id", "bgm_singer_id"]
+  action_name: &action_name ["read_comment", "like", "click_avatar",  "forward"]
+
+trainer:
+  loss:
+    name: focal_loss
+    beta: 2
+    action_weight: &action_weight [4, 3, 2, 1]
+  device:
+    name: &device 'cuda:0'
+    num_worker: 4
+    batch_size: 256
+  learn:
+    epochs: 1
+    method: Adam
+    lr: 0.0001
+    weight_decay: 0.0001
+    milestones: [2]
+  action_name: *action_name
+  val_interval: 1
+
+evaluator:
+  name: 'uauc'
+  device:
+    name: *device
+    batch_size: 256
+    num_worker: 0  # TODO: investigate why this should be 0
+  action_name: *action_name
+  action_weight: *action_weight

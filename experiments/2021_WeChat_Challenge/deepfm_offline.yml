@@ -1,0 +1,80 @@
+save:
+  dir: 'D:\data\train_log_deepfm_offline'
+
+model:
+  name: deepfm
+  cat_dims: [106445, 19917, 18790, 25160, 17501, 3, 10, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11]
+  embed_dim: &embed_dim 10
+  output_dim: 4
+  mlp_dims: [200, 200, 200]
+  dropout: 0.4
+  binary_class_interaction: True
+#  context_embeds:
+#    - path: 'D:\data\dataset\user_embeddings.csv'
+#      embed_shape: [ 19917, 512 ]
+##      output_shape: [ 5, *embed_dim ]
+#      requires_grad: False
+#    - path: 'D:\data\origin\feed_embeddings.csv'
+#      embed_shape: [106445, 512]
+##      output_shape: [ 5, *embed_dim]
+#      requires_grad: False
+
+pretrain:
+#  resume:
+#  load: 'D:\data\train_log_deepfm_offline\20210630221136\model\model_best.pth'
+
+data:
+  name: point
+  negative_sample: 0.1
+  vocab: 'D:\data\vocab'
+#  user:
+#  item:
+  action:
+    train: 'D:\data\dataset\offline_train.csv'
+    val: 'D:\data\dataset\offline_test.csv'
+    test: 'D:\data\dataset\online_test_a.csv'
+  input:
+    userid: 'userid_orig'
+    itemid: 'feedid_orig'
+    cat:
+#      user:
+#      item:
+      action: [ 'feedid', 'userid', 'authorid', 'bgm_song_id', 'bgm_singer_id', 'device',
+                'videoplayseconds', 'read_comment_sum', 'like_sum', 'click_avatar_sum',
+                'forward_sum', 'comment_sum', 'follow_sum', 'favorite_sum', 'read_comment_sum_user',
+                'like_sum_user', 'click_avatar_sum_user', 'forward_sum_user', 'comment_sum_user',
+                'follow_sum_user', 'favorite_sum_user']
+#    multi_hot:
+#      user:
+#      item:
+#      action:
+    context: ['userid', 'feedid']
+    action: &action_name [ "read_comment", "like", "click_avatar",  "forward" ]
+
+trainer:
+  name: point
+  loss:
+    name: bce
+    beta: 0
+    action_weight: &action_weight [4, 3, 2, 1]
+  device:
+    name: &device 'cuda:0'
+    num_worker: 4
+    batch_size: 256
+  learn:
+    epochs: 15
+    method: Adam
+    lr: 0.001
+    weight_decay: 0.0001
+    milestones: [13]
+  action_name: *action_name
+  val_interval: 1
+
+evaluator:
+  name: 'uauc'
+  device:
+    name: *device
+    batch_size: 256
+    num_worker: 0  # TODO: investigate why this should be 0
+  action_name: *action_name
+  action_weight: *action_weight

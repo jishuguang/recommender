@@ -1,0 +1,33 @@
+vocabs:
+  - input: 'D:\data\origin\feed_embeddings.csv'
+    vocabs:
+      - type: 'cat'
+        name: ['feedid']
+        min_frequency: 1
+  - input: 'D:\data\dataset\user_embeddings.csv'
+    vocabs:
+      - type: 'cat'
+        name: ['userid']
+        min_frequency: 1
+  - input: 'D:\data\origin\feed_info.csv'
+    vocabs:
+      - type: 'cat'
+        name: ["authorid", "bgm_song_id", "bgm_singer_id"]
+        min_frequency: 1
+      - type: 'num'
+        name: ['videoplayseconds']
+        sparse_positive: False
+        bucket: 10
+  - input: 'D:\data\origin\user_action.csv'
+    vocabs:
+      - type: 'cat'
+        name: ['device']
+        min_frequency: 1
+  - input: 'D:\data\dataset\offline_train.csv'
+    vocabs:
+      - type: 'num'
+        name: [ 'read_comment_sum', 'like_sum', 'click_avatar_sum', 'forward_sum', 'comment_sum',
+               'follow_sum', 'favorite_sum', 'read_comment_sum_user', 'like_sum_user', 'click_avatar_sum_user',
+               'forward_sum_user', 'comment_sum_user', 'follow_sum_user', 'favorite_sum_user' ]
+        sparse_positive: True
+        bucket: 10
